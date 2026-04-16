@@ -100,11 +100,11 @@ Ruta habitual:
 
 Dentro de la carpeta android/ modificar local.properties:
 
-sdk.dir=/Users/TU_USUARIO/Library/Android/sdk
+- sdk.dir=/Users/TU_USUARIO/Library/Android/sdk
 
 3. Configurar variables de entorno (En el caso de ser necesario)
 
-Editar ~/.zshrc o ~/.bashrc:
+- Editar ~/.zshrc o ~/.bashrc:
 
 export ANDROID_HOME=$HOME/Library/Android/sdk
 export ANDROID_SDK_ROOT=$HOME/Library/Android/sdk
@@ -113,15 +113,15 @@ export PATH=$PATH:$ANDROID_HOME/platform-tools
 
 Aplicar cambios:
 (Mac)
-source ~/.zshrc
+- source ~/.zshrc
 
 ### 8. Ejecución del proyecto
 
-1. Levantar Metro
-npm start
+1. Levantar Metro en una terminal
+- npm start
 
-2. Ejecutar en Android (Visualizar en emulador o en dispositivo Android conectado en modo desarrollador)
-npm run android
+2. Ejecutar en Android en otra terminal (Visualizar el desarrollo en emulador o en dispositivo Android conectado en modo desarrollador)
+- npm run android
 
 
 ## Configuración adicional requerida (Android)
