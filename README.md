@@ -1,97 +1,139 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# Catálogo de Productos App
 
-# Getting Started
+Aplicación móvil desarrollada en **React Native CLI** con **TypeScript** que consume una API pública de productos, permite visualizar un listado paginado, buscar productos por título, ver el detalle de cada producto y administrar favoritos con Redux y persistencia local.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+## Tecnologías utilizadas
 
-## Step 1: Start Metro
+- React Native CLI
+- TypeScript
+- Redux Toolkit
+- React Redux
+- Axios
+- React Navigation
+- AsyncStorage
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+## Funcionalidades implementadas
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+### 1. Listado de productos
+La pantalla principal muestra un catálogo de productos consumidos desde una API pública.
 
-```sh
-# Using npm
+Incluye:
+
+- imagen
+- título
+- precio
+- loading visual
+- manejo de errores
+- botón de reintento
+- pull to refresh
+- paginación por scroll
+
+### 2. Búsqueda
+La pantalla principal incluye un buscador por título con debounce para evitar recargas innecesarias mientras el usuario escribe.
+
+### 3. Detalle de producto
+Al tocar un producto se abre una pantalla de detalle con:
+
+- imagen grande
+- título
+- categoría
+- precio
+- descripción
+
+Desde esta pantalla se puede:
+
+- agregar a favoritos
+- quitar de favoritos
+
+### 4. Favoritos
+Existe una pestaña de favoritos donde se listan los productos marcados por el usuario.
+
+Los favoritos están gestionados con Redux y almacenados en una estructura normalizada por `ids` y `entities`.
+
+### 5. Persistencia local
+Los favoritos se guardan localmente con AsyncStorage, de modo que al cerrar y volver a abrir la aplicación se conservan.  
+
+## API utilizada
+
+Se utiliza **DummyJSON** como API pública de productos.
+
+El proyecto trabaja con dos endpoints principales:
+
+- listado paginado de productos
+- búsqueda de productos por título
+
+La lógica de consumo de API está centralizada en el módulo `src/api/productosApi.ts`, reutilizando una instancia de Axios configurada en `src/api/clienteAxios.ts`.
+
+
+Antes de ejecutar el proyecto, es necesario contar con el siguiente entorno configurado:
+
+### 6. Herramientas generales
+Node.js 22.11.0 o superior
+npm
+Git
+
+Para Android
+Android Studio
+Android SDK
+Emulador Android o dispositivo físico
+Variables de entorno configuradas correctamente
+
+### 7. Instalación del proyecto
+1. Clonar el repositorio
+git clone https://github.com/guslublin/CatalogoProductosApp.git
+cd CatalogoProductosApp
+
+2. Instalar dependencias
+npm install
+
+### 8. Configuración para Android
+
+React Native necesita conocer la ubicación del SDK de Android.
+
+1. Verificar instalación del SDK
+
+Ruta habitual:
+
+/Users/TU_USUARIO/Library/Android/sdk
+
+2. Crear/Modificar archivo local.properties
+
+Dentro de la carpeta android/ modificar local.properties:
+
+sdk.dir=/Users/TU_USUARIO/Library/Android/sdk
+
+3. Configurar variables de entorno (En el caso de ser necesario)
+
+Editar ~/.zshrc o ~/.bashrc:
+
+export ANDROID_HOME=$HOME/Library/Android/sdk
+export ANDROID_SDK_ROOT=$HOME/Library/Android/sdk
+export PATH=$PATH:$ANDROID_HOME/emulator
+export PATH=$PATH:$ANDROID_HOME/platform-tools
+
+Aplicar cambios:
+(Mac)
+source ~/.zshrc
+
+### 8. Ejecución del proyecto
+
+1. Levantar Metro
 npm start
 
-# OR using Yarn
-yarn start
-```
-
-## Step 2: Build and run your app
-
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
-
-### Android
-
-```sh
-# Using npm
+2. Ejecutar en Android (Visualizar en emulador o en dispositivo Android conectado en modo desarrollador)
 npm run android
 
-# OR using Yarn
-yarn android
-```
 
-### iOS
+## Configuración adicional requerida (Android)
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+Durante la configuración del entorno, fue necesario instalar componentes adicionales desde Android Studio para asegurar el correcto funcionamiento del proyecto.
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+Estos componentes se pueden instalar desde:
 
-```sh
-bundle install
-```
+Android Studio → Settings → Android SDK → SDK Tools
 
-Then, and every time you update your native dependencies, run:
+Se deben tener instalados:
 
-```sh
-bundle exec pod install
-```
-
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
-
-```sh
-# Using npm
-npm run ios
-
-# OR using Yarn
-yarn ios
-```
-
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
-
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
-
-## Step 3: Modify your app
-
-Now that you have successfully run the app, let's make changes!
-
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
-
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
-
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+- NDK (Side by side)
+- Android SDK Command-line Tools (latest)
+- CMake
