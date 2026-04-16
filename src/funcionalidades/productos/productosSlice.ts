@@ -1,115 +1,124 @@
-import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { buscarProductosApi, obtenerProductosApi } from '../../api/productosApi';
-import { EstadoCarga, Producto } from './productosTipos';
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { obtenerProductosApi, buscarProductosApi } from '../../api/productosApi';
+import { Producto } from './productosTipos';
+import { RootState } from '../../aplicacion/store';
+
+type EstadoCarga = 'idle' | 'loading' | 'succeeded' | 'failed';
 
 interface EstadoProductos {
   items: Producto[];
-  estado: EstadoCarga;
+  status: EstadoCarga;
   error: string | null;
-  pagina: number;
+  page: number;
   limite: number;
-  tieneMas: boolean;
+  hasMore: boolean;
   textoBusqueda: string;
   refrescando: boolean;
 }
 
 const estadoInicial: EstadoProductos = {
   items: [],
-  estado: 'idle',
+  status: 'idle',
   error: null,
-  pagina: 0,
+  page: 0,
   limite: 10,
-  tieneMas: true,
+  hasMore: true,
   textoBusqueda: '',
   refrescando: false,
 };
 
-export const obtenerProductos = createAsyncThunk(
-  'productos/obtenerProductos',
-  async (_, { getState, rejectWithValue }) => {
-    try {
-      const state: any = getState();
-      const { pagina, limite, textoBusqueda } = state.productos as EstadoProductos;
+const unirSinDuplicados = (
+  actuales: Producto[],
+  nuevos: Producto[],
+): Producto[] => {
+  const mapa = new Map<number, Producto>();
 
-      const salto = pagina * limite;
-
-      if (textoBusqueda.trim()) {
-        const respuesta = await buscarProductosApi(textoBusqueda, limite, salto);
-        return respuesta;
-      }
-
-      const respuesta = await obtenerProductosApi(limite, salto);
-      return respuesta;
-    } catch (error: any) {
-      return rejectWithValue(error?.message || 'Ocurrió un error al obtener productos');
-    }
+  for (const producto of actuales) {
+    mapa.set(producto.id, producto);
   }
-);
 
-export const refrescarProductos = createAsyncThunk(
-  'productos/refrescarProductos',
-  async (_, { getState, rejectWithValue }) => {
-    try {
-      const state: any = getState();
-      const { limite, textoBusqueda } = state.productos as EstadoProductos;
-
-      if (textoBusqueda.trim()) {
-        const respuesta = await buscarProductosApi(textoBusqueda, limite, 0);
-        return respuesta;
-      }
-
-      const respuesta = await obtenerProductosApi(limite, 0);
-      return respuesta;
-    } catch (error: any) {
-      return rejectWithValue(error?.message || 'Ocurrió un error al refrescar productos');
-    }
+  for (const producto of nuevos) {
+    mapa.set(producto.id, producto);
   }
-);
+
+  return Array.from(mapa.values());
+};
+
+export const obtenerProductos = createAsyncThunk<
+  { productos: Producto[]; total: number },
+  void,
+  { state: RootState }
+>('productos/obtenerProductos', async (_, thunkAPI) => {
+  const state = thunkAPI.getState();
+  const { page, limite, textoBusqueda } = state.productos;
+
+  const skip = page * limite;
+
+  if (textoBusqueda.trim()) {
+    return await buscarProductosApi(textoBusqueda, limite, skip);
+  }
+
+  return await obtenerProductosApi(limite, skip);
+});
+
+export const refrescarProductos = createAsyncThunk<
+  { productos: Producto[]; total: number },
+  void,
+  { state: RootState }
+>('productos/refrescarProductos', async (_, thunkAPI) => {
+  const state = thunkAPI.getState();
+  const { limite, textoBusqueda } = state.productos;
+
+  if (textoBusqueda.trim()) {
+    return await buscarProductosApi(textoBusqueda, limite, 0);
+  }
+
+  return await obtenerProductosApi(limite, 0);
+});
 
 const productosSlice = createSlice({
   name: 'productos',
   initialState: estadoInicial,
   reducers: {
-    establecerTextoBusqueda: (state, action: PayloadAction<string>) => {
+    setBusqueda: (state, action: PayloadAction<string>) => {
       state.textoBusqueda = action.payload;
-      state.pagina = 0;
-      state.items = [];
-      state.tieneMas = true;
+      state.page = 0;
+      state.hasMore = true;
       state.error = null;
     },
-    reiniciarProductos: state => {
+    limpiarProductos: state => {
       state.items = [];
-      state.estado = 'idle';
+      state.page = 0;
+      state.hasMore = true;
+      state.status = 'idle';
       state.error = null;
-      state.pagina = 0;
-      state.tieneMas = true;
+      state.textoBusqueda = '';
+      state.refrescando = false;
     },
   },
   extraReducers: builder => {
     builder
       .addCase(obtenerProductos.pending, state => {
-        state.estado = 'loading';
+        state.status = 'loading';
         state.error = null;
       })
       .addCase(obtenerProductos.fulfilled, (state, action) => {
-        state.estado = 'succeeded';
+        state.status = 'succeeded';
 
-        const nuevosProductos = action.payload.productos;
-        const total = action.payload.total;
+        const nuevos = action.payload.productos;
 
-        if (state.pagina === 0) {
-          state.items = nuevosProductos;
+        if (state.page === 0) {
+          state.items = nuevos;
         } else {
-          state.items = [...state.items, ...nuevosProductos];
+          state.items = unirSinDuplicados(state.items, nuevos);
         }
 
-        const cantidadActual = state.items.length;
-        state.tieneMas = cantidadActual < total;
-        state.pagina += 1;
+        state.page += 1;
+        state.hasMore = state.items.length < action.payload.total;
       })
       .addCase(obtenerProductos.rejected, (state, action) => {
-        state.estado = 'failed';
-        state.error = (action.payload as string) || 'Error al obtener productos';
+        state.status = 'failed';
+        state.error = action.error.message || 'Error al cargar productos';
       })
       .addCase(refrescarProductos.pending, state => {
         state.refrescando = true;
@@ -117,17 +126,18 @@ const productosSlice = createSlice({
       })
       .addCase(refrescarProductos.fulfilled, (state, action) => {
         state.refrescando = false;
-        state.estado = 'succeeded';
+        state.status = 'succeeded';
         state.items = action.payload.productos;
-        state.pagina = 1;
-        state.tieneMas = action.payload.productos.length < action.payload.total;
+        state.page = 1;
+        state.hasMore = state.items.length < action.payload.total;
       })
       .addCase(refrescarProductos.rejected, (state, action) => {
         state.refrescando = false;
-        state.error = (action.payload as string) || 'Error al refrescar productos';
+        state.error = action.error.message || 'Error al refrescar';
       });
   },
 });
 
-export const { establecerTextoBusqueda, reiniciarProductos } = productosSlice.actions;
-export const productosReducer = productosSlice.reducer;
+export const { setBusqueda, limpiarProductos } = productosSlice.actions;
+
+export default productosSlice.reducer;
